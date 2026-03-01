@@ -1,9 +1,9 @@
 package co.tz.sheriaconnectapi;
 
-import co.tz.sheriaconnectapi.Model.Entities.Authority;
-import co.tz.sheriaconnectapi.Model.Entities.Role;
-import co.tz.sheriaconnectapi.Repositories.AuthorityRepository;
-import co.tz.sheriaconnectapi.Repositories.RoleRepository;
+import co.tz.sheriaconnectapi.model.Entities.Authority;
+import co.tz.sheriaconnectapi.model.Entities.Role;
+import co.tz.sheriaconnectapi.repositories.AuthorityRepository;
+import co.tz.sheriaconnectapi.repositories.RoleRepository;
 import jakarta.persistence.Entity;
 import lombok.RequiredArgsConstructor;
 import org.reflections.Reflections;
