@@ -88,7 +88,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/auth/verify-email").permitAll()
-                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/register").permitAll()
+                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/register", "/auth/forgot-password").permitAll()
                         .requestMatchers("/admin/login").permitAll()
                         .anyRequest().authenticated()
                 )
