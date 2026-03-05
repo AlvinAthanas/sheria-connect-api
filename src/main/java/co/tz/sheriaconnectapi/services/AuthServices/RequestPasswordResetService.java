@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -37,6 +38,7 @@ public class RequestPasswordResetService
         this.emailService = emailService;
     }
 
+    @Transactional
     @Override
     public ResponseEntity<StandardResponse<Void>> execute(
             PasswordResetRequestDTO input
