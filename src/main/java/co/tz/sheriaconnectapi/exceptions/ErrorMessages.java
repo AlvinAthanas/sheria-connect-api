@@ -12,10 +12,12 @@ public enum ErrorMessages {
     INVALID_TOKEN("Invalid token"),
     MISSING_TOKEN("Missing refresh token"),
     EMAIL_ALREADY_VERIFIED("Email already verified"),
+    EMAIL_NOT_VERIFIED("This email has not been verified yet"),
     EMAIL_VERIFICATION_TOKEN_EXPIRED("Email verification token expired"),
     EMAIL_VERIFICATION_TOKEN_INVALID("Invalid email verification token"),
     PASSWORD_RESET_TOKEN_INVALID("Invalid password reset token"),
     PASSWORD_RESET_TOKEN_EXPIRED("Password reset token expired"),
+    INVALID_LOGIN_CREDENTIALS("Wrong email or password"),
     ;
 
     private final String message;

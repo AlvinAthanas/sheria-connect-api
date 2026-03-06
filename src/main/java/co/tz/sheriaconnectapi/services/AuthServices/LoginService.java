@@ -1,7 +1,10 @@
 package co.tz.sheriaconnectapi.services.AuthServices;
 
 import co.tz.sheriaconnectapi.abstractions.Command;
+import co.tz.sheriaconnectapi.exceptions.EmailNotVerifiedException;
 import co.tz.sheriaconnectapi.exceptions.InvalidClientTypeException;
+import co.tz.sheriaconnectapi.exceptions.InvalidLoginCredentialsException;
+import co.tz.sheriaconnectapi.exceptions.UserNotFoundException;
 import co.tz.sheriaconnectapi.model.Commands.LoginResponse;
 import co.tz.sheriaconnectapi.model.Commands.MobileLoginResponse;
 import co.tz.sheriaconnectapi.model.DTOs.LoginInput;
@@ -16,6 +19,8 @@ import co.tz.sheriaconnectapi.utils.StandardResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,12 +53,23 @@ public class LoginService implements Command<LoginInput, LoginResponse> {
                         loginInput.getUserLoginDTO().getPassword()
                 );
 
-        Authentication authentication = manager.authenticate(authToken);
+        Authentication authentication;
+        try {
+            authentication = manager.authenticate(authToken);
+        } catch (BadCredentialsException | InternalAuthenticationServiceException ex) {
+            Throwable cause = ex.getCause();
+
+            if (cause instanceof EmailNotVerifiedException) {
+                throw (EmailNotVerifiedException) cause;
+            }
+
+            throw new InvalidLoginCredentialsException();
+        }
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // ✅ Client detection
         String clientHeader = loginInput.getRequest().getHeader("X-Client-Type");
         ClientType clientType = ClientType.WEB;
 
@@ -70,7 +86,7 @@ public class LoginService implements Command<LoginInput, LoginResponse> {
 
         User userEntity = userRepository.findByEmail(
                 loginInput.getUserLoginDTO().getEmail()
-        ).orElseThrow(() -> new RuntimeException("User not found"));
+        ).orElseThrow(UserNotFoundException::new);
 
         RefreshService.storeNewRefreshToken(
                 userEntity,
@@ -81,7 +97,6 @@ public class LoginService implements Command<LoginInput, LoginResponse> {
 
         UserDTO userDTO = new UserDTO(userEntity);
 
-        // 🌐 WEB → cookie
         if (clientType == ClientType.WEB) {
 
             LoginResponse loginBody = new LoginResponse(
@@ -107,7 +122,6 @@ public class LoginService implements Command<LoginInput, LoginResponse> {
                     );
         }
 
-        // 📱 MOBILE → include refresh token in body
         MobileLoginResponse mobileBody = new MobileLoginResponse(
                 accessToken,
                 userDTO,

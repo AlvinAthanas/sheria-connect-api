@@ -1,6 +1,7 @@
 package co.tz.sheriaconnectapi.services.AuthServices;
 
 import co.tz.sheriaconnectapi.abstractions.Command;
+import co.tz.sheriaconnectapi.exceptions.InvalidClientTypeException;
 import co.tz.sheriaconnectapi.exceptions.UserNotFoundException;
 import co.tz.sheriaconnectapi.model.DTOs.LogoutInput;
 import co.tz.sheriaconnectapi.model.Entities.User;
@@ -43,15 +44,12 @@ public class LogoutService implements Command<LogoutInput, Void> {
             );
         }
 
-        // 1️⃣ Resolve user
         User user = userRepository
                 .findByEmail(input.getAuth().getName())
                 .orElseThrow(UserNotFoundException::new);
 
-        // 2️⃣ Delete all refresh tokens (logout everywhere)
         refreshTokenRepository.deleteAllByUserId(user.getId());
 
-        // 3️⃣ Detect client type (default WEB)
         String clientHeader =
                 input.getRequest().getHeader("X-Client-Type");
 
@@ -62,20 +60,20 @@ public class LogoutService implements Command<LogoutInput, Void> {
                 clientType = ClientType.valueOf(
                         clientHeader.toUpperCase()
                 );
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException e) {
+                throw new InvalidClientTypeException();
+            }
         }
 
-        // 4️⃣ WEB → clear HttpOnly refresh cookie
         if (clientType == ClientType.WEB) {
             Cookie cookie = new Cookie("refresh_token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/auth/refresh");
-            cookie.setMaxAge(0); // delete cookie
+            cookie.setMaxAge(0);
             input.getResponse().addCookie(cookie);
         }
 
-        // 5️⃣ Clear Spring Security context
         SecurityContextHolder.clearContext();
 
         return ResponseUtil.success(
