@@ -1,5 +1,6 @@
 package co.tz.sheriaconnectapi.security.UserDetails;
 
+import co.tz.sheriaconnectapi.exceptions.EmailNotVerifiedException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 );
 
         if (!user.getEmailVerified()) {
-            throw new DisabledException("Email not verified");
+            throw new EmailNotVerifiedException();
         }
 
 
